@@ -135,5 +135,7 @@ You can find the code in the `examples` sub-module.
 # License
 
 Apache Software License, version 2.0
+
 (c) Simon Chemouil, Lambdacube
+
 
