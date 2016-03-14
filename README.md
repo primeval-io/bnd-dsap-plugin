@@ -65,7 +65,7 @@ Finally, defining the same property multiple times either through annotations or
 tl;dr: it works fine, and hopefully some day it can be rewritten in a cleaner way.  
 
 
-# Usage
+# Enabling the plugin
 
 
 With Bnd:
@@ -99,7 +99,7 @@ With maven-bundle-plugin:
       </plugin>
 ```
 
-# Rules
+# Basic Usage
 
 * Component property annotations must either:
   * be empty, in that case they are `Boolean` and the value is `Boolean.TRUE`.
@@ -111,8 +111,11 @@ With maven-bundle-plugin:
 * You are free to use a `RUNTIME` retention if you want to also introspect the annotations at runtime, but a `SOURCE` retention will not work (as Bnd works on classes).
  
  
-# Gogo example
+# Advanced Usage
 
+It is also possible to make annotations "provide" OSGi services. 
+
+Take the following component:
 ```
 @Component(service = Object.class)
 @CommandScope("greeting")
@@ -125,11 +128,94 @@ public final class MyComponentWithShellCommands {
     public void sayGoodbye() {
     }
 }
+
+```
+
+In the `@Component` annotation, we have to specify `(service = Object.class)` because of the expectations of the consuming framework (e.g Gogo shell), which is filtering on service properties but doesn't care about the service interface itself (`objectClass` property) because it uses reflection.
+
+Because of Declarative Services' rules, if a component does not provide a service either through implementing interfaces or explicitly providing them using the `(service = ...)` definition, then no service is published to the registry. I am not sure how much sense it makes to have component properties on such a service, but that is how things are currently :-). 
+
+If our component was providing any other service, it would not need to provide `Object.class` as well. This is just a trick to make sure it is registered as a service.
+
+This plugin makes it possible, in these cases, to fallback to a `Object.class` without having to specify it. 
+
+```
+@ComponentProperty("osgi.command.scope")
+@EnsureProvideService
+@Target(ElementType.TYPE)
+public @interface CommandScope {
+    String value();
+}
+```
+
+This feature is entirely optional, and it changes the semantic of DS slightly (for the better). Don't use `@EnsureProvideService` on your property annotations if you don't like it.
+
+
+ 
+# Updated Gogo example
+
+```
+@Component
+@CommandScope("greeting")
+@MyCommandFunctions({ MyFunctions.sayHello, MyFunctions.sayGoodbye })
+public final class MyComponentWithShellCommands {
+
+    public void sayHello() {
+    }
+
+    public void sayGoodbye() {
+    }
+}
+
+```
+
+The following XML gets generated:
+
+```
+
 ```
 
 
-
 You can find the code in the `examples` sub-module.
+
+
+# What's next
+
+I am interested in using annotations on @Reference methods.
+
+```
+@Component
+public final class IAmGogo {
+
+    @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+    public void addCommand(@CommandScope("*") Object command) {
+
+    }
+
+    public void removeCommand(@CommandScope("*") Object command) {
+
+    }
+}
+```
+
+that would be equivalent to:
+
+```
+@Component
+public final class IAmGogo {
+
+    @Reference(target = "(osgi.command.scope=*)", cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+    public void addCommand(Object command) {
+
+    }
+
+    public void removeCommand(Object command) {
+
+    }
+}
+
+
+```
 
 
 # License
