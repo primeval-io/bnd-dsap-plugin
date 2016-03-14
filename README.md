@@ -62,7 +62,7 @@ Also, Bnd does not support extending DS component descriptors properly. This is 
 
 Finally, defining the same property multiple times either through annotations or using the official `@Component(property={...})` syntax will result in the property being present several time in the XML and is likely to cause runtime problems :-).
 
-td;lr: it works fine, and hopefully some day we can rewrite it in a cleaner way.  
+tl;dr: it works fine, and hopefully some day we can rewrite it in a cleaner way.  
 
 
 # Usage
