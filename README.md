@@ -62,7 +62,7 @@ Also, Bnd does not support extending DS component descriptors properly. This is 
 
 Finally, defining the same property multiple times either through annotations or using the official `@Component(property={...})` syntax will result in the property being present several time in the XML and is likely to cause runtime problems :-).
 
-tl;dr: it works fine, and hopefully some day we can rewrite it in a cleaner way.  
+tl;dr: it works fine, and hopefully some day it can be rewritten in a cleaner way.  
 
 
 # Usage
@@ -108,7 +108,7 @@ With maven-bundle-plugin:
     * if the return type is either `int`, `float`, `double`, `boolean`, the corresponding boxed type is used.
     * otherwise, for Strings, Enums, Classes (or Annotations themselves, discouraged), the type is String and the value is the result of a call to `Object::toString` on the annotation value.  
     * arrays are supported, and behave as you'd expect.
-  * You are free to use a `RUNTIME` retention if you want to also introspect the annotations at runtime, but a `SOURCE` retention will not work (as Bnd works on classes).
+* You are free to use a `RUNTIME` retention if you want to also introspect the annotations at runtime, but a `SOURCE` retention will not work (as Bnd works on classes).
  
  
 # Gogo example
