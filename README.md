@@ -2,7 +2,7 @@
 This plugin allows the definition of DS component properties using annotations
 
 Instead of a clumsy and error-prone property definition such as this:
-```
+```java
 @Component(property = { "custom.secure:Boolean=true", "custom.public:Boolean=true",
         "custom.continent=AFRICA", "custom.continent=EUROPE", "service.ranking:Integer=10",
         "custom.alias=yeepee" })
@@ -13,8 +13,7 @@ public final class MyNotSoCoolComponent implements MyService {
 
 this plugin will enrich the XML component descriptor at compile time so you can use annotations instead:
 
-```
-
+```java
 @Secure(true)
 @Public
 @ContinentSpecific({Continent.AFRICA, Continent.EUROPE})
@@ -28,7 +27,7 @@ public final class MyCoolComponent implements MyService {
 
 It's only a matter of defining the annotations you like and annotating them with `@ComponentProperty(<propertyName>)`
 
-```
+```java
 @ComponentProperty("custom.alias")
 @Target(ElementType.TYPE)
 public @interface Alias {
@@ -37,7 +36,7 @@ public @interface Alias {
 ```
 
 This generates the following XML descriptor:
-```
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="io.lambdacube.component.demo.basic.MyCoolComponent">
   <implementation class="io.lambdacube.component.demo.basic.MyCoolComponent"/>
@@ -76,7 +75,7 @@ With Bnd:
 ```
 
 With maven-bundle-plugin:
-```
+```xml
   <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
@@ -116,7 +115,7 @@ With maven-bundle-plugin:
 It is also possible to make annotations "provide" OSGi services. 
 
 Take the following component:
-```
+```java
 @Component(service = Object.class)
 @CommandScope("greeting")
 @MyCommandFunctions({ MyFunctions.sayHello, MyFunctions.sayGoodbye })
@@ -139,7 +138,7 @@ If our component was providing any other service, it would not need to provide `
 
 This plugin makes it possible, in these cases, to fallback to a `Object.class` without having to specify it. 
 
-```
+```java
 @ComponentProperty("osgi.command.scope")
 @EnsureProvideService
 @Target(ElementType.TYPE)
@@ -154,7 +153,7 @@ This feature is entirely optional, and it changes the semantic of DS slightly (f
  
 # Updated Gogo example
 
-```
+```java
 @Component
 @CommandScope("greeting")
 @MyCommandFunctions({ MyFunctions.sayHello, MyFunctions.sayGoodbye })
@@ -170,7 +169,7 @@ public final class MyComponentWithShellCommands {
 
 The following XML gets generated:
 
-```
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="io.lambdacube.component.demo.gogo.MyComponentWithShellCommands">
   <implementation class="io.lambdacube.component.demo.gogo.MyComponentWithShellCommands"/>
@@ -191,7 +190,7 @@ You can find the code in the `examples` sub-module.
 
 I am interested in using annotations on @Reference methods.
 
-```
+```java
 @Component
 public final class IAmGogo {
 
@@ -208,7 +207,7 @@ public final class IAmGogo {
 
 that would be equivalent to:
 
-```
+```java
 @Component
 public final class IAmGogo {
 
