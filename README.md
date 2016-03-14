@@ -166,13 +166,21 @@ public final class MyComponentWithShellCommands {
     public void sayGoodbye() {
     }
 }
-
 ```
 
 The following XML gets generated:
 
 ```
-
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="io.lambdacube.component.demo.gogo.MyComponentWithShellCommands">
+  <implementation class="io.lambdacube.component.demo.gogo.MyComponentWithShellCommands"/>
+  <property name="osgi.command.scope" type="String" value="greeting"/>
+  <property name="osgi.command.function" type="String">sayHello
+sayGoodbye</property>
+  <service>
+    <provide interface="java.lang.Object"/>
+  </service>
+</component>
 ```
 
 
