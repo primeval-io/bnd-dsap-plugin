@@ -24,7 +24,7 @@ public final class DSAPPlugin implements AnalyzerPlugin {
     public boolean analyzeJar(Analyzer analyzer) throws Exception {
         String sc = analyzer.getProperty(Constants.SERVICE_COMPONENT);
 
-        if (sc == null) {
+        if (sc == null || sc.trim().isEmpty()) {
             return false;
         }
 
