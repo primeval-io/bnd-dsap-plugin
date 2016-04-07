@@ -1,7 +1,11 @@
 package io.lambdacube.bnd.component.annotation.properties;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,6 +20,7 @@ import aQute.bnd.osgi.Resource;
 import aQute.bnd.service.AnalyzerPlugin;
 import aQute.lib.tag.Tag;
 import io.lambdacube.component.annotation.ComponentProperty;
+import io.lambdacube.component.annotation.ComponentPropertyGroup;
 import io.lambdacube.component.annotation.EnsureProvideService;
 
 public final class DSAPPlugin implements AnalyzerPlugin {
@@ -56,105 +61,167 @@ public final class DSAPPlugin implements AnalyzerPlugin {
                 public void annotation(Annotation annotation) throws Exception {
                     Clazz annClazz = analyzer.findClass(annotation.getName());
 
-                    String[] propertyName = new String[1];
+                    String[] flatPropertyName = new String[1];
+                    MethodDef[] lastMethod = new MethodDef[1];
+
+                    boolean[] isComponentPropertyGroup = new boolean[1];
+
+                    Map<String, String> propertyByMethod = new HashMap<>();
 
                     annClazz.parseClassFileWithCollector(new ClassDataCollector() {
+
+                        @Override
+                        public void method(MethodDef defined) {
+                            lastMethod[0] = defined;
+                        }
+
                         public void annotation(Annotation annotation) throws Exception {
-                            if (ComponentProperty.class.getName().equals(annotation.getName().getFQN())) {
-                                String v = annotation.get("value");
-                                propertyName[0] = v;
-                            }
-                            if (EnsureProvideService.class.getName().equals(annotation.getName().getFQN())) {
-                                ensureService[0] = true;
-                            }
-                        };
-                    });
-
-                    String prop = propertyName[0];
-                    if (prop == null) {
-                        return;
-                    }
-
-                    boolean[] hasMethod = new boolean[1];
-                    boolean[] isArray = new boolean[1];
-                    // default Type
-                    String[] typeName = new String[] { "Boolean" };
-                    // Read twice to be sure we only deal with the
-                    // annotations we're interested in
-                    annClazz.parseClassFileWithCollector(new ClassDataCollector() {
-
-                        public void method(MethodDef last) {
-                            if (!"value".equals(last.getName())) {
-                                analyzer.error(
-                                        "Component property annotations can only have one field named value, found method named %s",
-                                        last.getName());
-                            }
-                            hasMethod[0] = true;
-                            String type = last.getGenericReturnType();
-                            boolean arr = type.endsWith("[]");
-                            isArray[0] = arr;
-                            if (arr) {
-                                type = type.substring(0, type.length() - 2);
-                            }
-                            switch (type) {
-                            case "int":
-                            case "short":
-                                typeName[0] = "Integer";
+                            switch (annotation.getElementType()) {
+                            case TYPE:
+                                if (ComponentPropertyGroup.class.getName().equals(annotation.getName().getFQN())) {
+                                    isComponentPropertyGroup[0] = true;
+                                } else if (ComponentProperty.class.getName().equals(annotation.getName().getFQN())) {
+                                    String v = annotation.get("value");
+                                    flatPropertyName[0] = v;
+                                } else if (EnsureProvideService.class.getName().equals(annotation.getName().getFQN())) {
+                                    ensureService[0] = true;
+                                }
                                 break;
-                            case "float":
-                                typeName[0] = "Float";
-                                break;
-                            case "double":
-                                typeName[0] = "Double";
-                                break;
-                            case "boolean":
-                                typeName[0] = "Boolean";
+
+                            case METHOD:
+                                if (ComponentProperty.class.getName().equals(annotation.getName().getFQN())) {
+                                    String v = annotation.get("value");
+                                    propertyByMethod.put(lastMethod[0].getName(), v);
+                                }
                                 break;
                             default:
-                                typeName[0] = "String";
                                 break;
                             }
-                        };
 
+                        };
                     });
 
-                    Object value = annotation.get("value");
+                    String flatProp = flatPropertyName[0];
 
-                    if (value == null) {
-                        if (hasMethod[0]) {
-                            analyzer.error("Default values are unsupported, fix annotation %s", annClazz.getFQN());
-                        } else {
-                            value = Boolean.TRUE;
+                    if (isComponentPropertyGroup[0] || flatProp != null) {
+
+                        List<AnnotationPropMethod> props = new ArrayList<>();
+
+                        // Read twice to be sure we only deal with the
+                        // annotations we're interested in
+                        annClazz.parseClassFileWithCollector(new ClassDataCollector() {
+
+                            public void method(MethodDef last) {
+                                String prop = null;
+                                if (flatProp != null) {
+                                    if (!"value".equals(last.getName())) {
+                                        analyzer.error(
+                                                "Component property annotations can only have one field named value, found method named %s",
+                                                last.getName());
+                                        return;
+                                    } else {
+                                        prop = flatProp;
+                                    }
+                                } else if (isComponentPropertyGroup[0]) {
+                                    prop = propertyByMethod.get(last.getName());
+                                    if (prop == null) {
+                                        // No prop, ignore
+                                        return;
+                                    }
+                                }
+
+                                String methodName = last.getName();
+
+                                String type = last.getGenericReturnType();
+                                boolean isArray = type.endsWith("[]");
+                                String typeName = null;
+                                if (isArray) {
+                                    type = type.substring(0, type.length() - 2);
+                                }
+                                switch (type) {
+                                case "int":
+                                case "short":
+                                    typeName = "Integer";
+                                    break;
+                                case "float":
+                                    typeName = "Float";
+                                    break;
+                                case "double":
+                                    typeName = "Double";
+                                    break;
+                                case "boolean":
+                                    typeName = "Boolean";
+                                    break;
+                                default:
+                                    typeName = "String";
+                                    break;
+                                }
+
+                                AnnotationPropMethod apm = new AnnotationPropMethod(prop, typeName, isArray, methodName);
+
+                                props.add(apm);
+                            };
+
+                        });
+
+                        if (props.isEmpty()) {
+
+                            if (flatProp != null) {
+                                props.add(new AnnotationPropMethod(flatProp, "Boolean", false, null));
+                            } else if (isComponentPropertyGroup[0]) {
+                                analyzer.error("Annotations annotated with @ComponentPropertyGroup must not be empty, found %s",
+                                        annClazz.getFQN());
+                                return;
+                            }
+                        }
+
+                        for (AnnotationPropMethod apm : props) {
+                            Object value = null;
+                            // No method.
+                            if (apm.annotationMethodName == null) {
+                                value = Boolean.TRUE;
+                            } else {
+                                value = annotation.get(apm.annotationMethodName);
+                            }
+                            if (value == null) {
+                                if (apm.isArray) {
+                                    value = new Object[0];
+                                } else {
+                                    analyzer.error("Default values are supported only for arrays (default to empty), fix annotation %s",
+                                            annClazz.getFQN());
+                                    return;
+                                }
+                            }
+
+                            String outValue = null;
+                            boolean array = false;
+                            if (value.getClass().isArray()) {
+                                Object[] arrVal = (Object[]) value;
+                                if (arrVal.length == 0) {
+                                    continue; // skip empty arrays
+                                }
+                                if (arrVal.length == 1) {
+                                    outValue = arrVal[0].toString();
+                                } else {
+                                    array = true;
+                                    Iterable<String> iterable = Stream.of(arrVal).map(Object::toString).collect(Collectors.toList());
+                                    outValue = String.join("\n", iterable);
+                                }
+                            } else {
+                                outValue = value.toString();
+                            }
+
+                            Tag property = new Tag("property");
+                            property.addAttribute("name", apm.propName);
+                            property.addAttribute("type", apm.typeName);
+                            if (array) {
+                                property.addContent(outValue);
+                            } else {
+                                property.addAttribute("value", outValue);
+                            }
+                            tag.addContent(property);
                         }
                     }
-
-                    String outValue = null;
-                    boolean array = false;
-                    if (value.getClass().isArray()) {
-                        Object[] arrVal = (Object[]) value;
-                        if (arrVal.length == 0) {
-                            analyzer.error("Empty array as value for annotation %s", annClazz.getClassName().getShortName());
-                        }
-                        if (arrVal.length == 1) {
-                            outValue = arrVal[0].toString();
-                        } else {
-                            array = true;
-                            Iterable<String> iterable = Stream.of(arrVal).map(Object::toString).collect(Collectors.toList());
-                            outValue = String.join("\n", iterable);
-                        }
-                    } else {
-                        outValue = value.toString();
-                    }
-
-                    Tag property = new Tag("property");
-                    property.addAttribute("name", prop);
-                    property.addAttribute("type", typeName[0]);
-                    if (array) {
-                        property.addContent(outValue);
-                    } else {
-                        property.addAttribute("value", outValue);
-                    }
-                    tag.addContent(property);
                 }
             });
 

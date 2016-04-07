@@ -52,6 +52,25 @@ EUROPE</property>
 
 ```
 
+# `@ComponentPropertyGroup`
+
+It is also possible to define an annotation that will potentially publish several properties using the annotation ```@ComponentPropertyGroup```.
+
+```java
+@ComponentPropertyGroup
+@Target(ElementType.TYPE)
+public @interface GogoCommand {
+
+    @ComponentProperty("osgi.command.scope")
+    String scope();
+
+    @ComponentProperty("osgi.command.function")
+    String[]commandFunction();
+}
+```
+
+In this case, both properties are added.
+
 
 # Caveats
 
@@ -98,16 +117,21 @@ With maven-bundle-plugin:
       </plugin>
 ```
 
-# Basic Usage
+# Usage for `@ComponentProperty` on the annotation type
 
-* Component property annotations must either:
+* `@ComponentProperty` annotations must either:
   * be empty, in that case they are `Boolean` and the value is `Boolean.TRUE`.
   * have exactly one method, named `value`
-    * default values are not supported (and not really useful)
+    * default values are not supported (and not really useful), except for empty arrays (in that case, the property is ignored)
     * if the return type is either `int`, `float`, `double`, `boolean`, the corresponding boxed type is used.
     * otherwise, for Strings, Enums, Classes (or Annotations themselves, discouraged), the type is String and the value is the result of a call to `Object::toString` on the annotation value.  
     * arrays are supported, and behave as you'd expect.
 * You are free to use a `RUNTIME` retention if you want to also introspect the annotations at runtime, but a `SOURCE` retention will not work (as Bnd works on classes).
+ 
+ 
+# Usage for `@ComponentPropertyGroup` on the annotation type
+
+Then you put `@ComponentProperty` on your annotation methods. The annotation must not be empty, and at least one method has to be annotated with `ComponentProperty`. Rules for methods are the same as above.
  
  
 # Advanced Usage
@@ -117,8 +141,7 @@ It is also possible to make annotations "provide" OSGi services.
 Take the following component:
 ```java
 @Component(service = Object.class)
-@CommandScope("greeting")
-@MyCommandFunctions({ MyFunctions.sayHello, MyFunctions.sayGoodbye })
+@GogoCommand(scope = "greeting", commandFunction = { "sayHello", "sayGoodbye"})
 public final class MyComponentWithShellCommands {
 
     public void sayHello() {
@@ -139,11 +162,16 @@ If our component was providing any other service, it would not need to provide `
 This plugin makes it possible, in these cases, to fallback to a `Object.class` without having to specify it. 
 
 ```java
-@ComponentProperty("osgi.command.scope")
 @EnsureProvideService
+@ComponentPropertyGroup
 @Target(ElementType.TYPE)
-public @interface CommandScope {
-    String value();
+public @interface GogoCommand {
+
+    @ComponentProperty("osgi.command.scope")
+    String scope();
+
+    @ComponentProperty("osgi.command.function")
+    String[]commandFunction();
 }
 ```
 
@@ -155,8 +183,7 @@ This feature is entirely optional, and it changes the semantic of DS slightly (f
 
 ```java
 @Component
-@CommandScope("greeting")
-@MyCommandFunctions({ MyFunctions.sayHello, MyFunctions.sayGoodbye })
+@GogoCommand(scope = "greeting", commandFunction = { "sayHello", "sayGoodbye"})
 public final class MyComponentWithShellCommands {
 
     public void sayHello() {
@@ -164,6 +191,7 @@ public final class MyComponentWithShellCommands {
 
     public void sayGoodbye() {
     }
+
 }
 ```
 

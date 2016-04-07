@@ -24,7 +24,6 @@
 	<modules>
 		<module>plugin</module>
 		<module>ds-annotation-properties</module>
-		<module>examples</module>
 	</modules>
 </project>
 

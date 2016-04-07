@@ -2,11 +2,10 @@ package io.lambdacube.component.demo.gogo;
 
 import org.osgi.service.component.annotations.Component;
 
-import io.lambdacube.component.demo.gogo.property.CommandScope;
+import io.lambdacube.component.demo.gogo.property.GogoCommand;
 
 @Component
-@CommandScope("greeting")
-@MyCommandFunctions({ MyFunctions.sayHello, MyFunctions.sayGoodbye })
+@GogoCommand(scope = "greeting", commandFunction = { "sayHello", "sayGoodbye"})
 public final class MyComponentWithShellCommands {
 
     public void sayHello() {
