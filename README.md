@@ -1,6 +1,9 @@
 # Bnd Declarative Services Annotation Properties Plugin
 This plugin allows the definition of DS component properties using annotations
 
+# Now available on Maven Central!
+
+
 Instead of a clumsy and error-prone property definition such as this:
 ```java
 @Component(property = { "custom.secure:Boolean=true", "custom.public:Boolean=true",
@@ -111,7 +114,7 @@ With maven-bundle-plugin:
           <dependency>
             <groupId>io.lambdacube.bnd</groupId>
             <artifactId>bnd-dsap-plugin</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0</version>
           </dependency>
         </dependencies>
       </plugin>
