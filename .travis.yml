@@ -1,0 +1,18 @@
+language: java
+jdk:
+- oraclejdk8
+sudo: false
+dist: trusty
+script: mvn clean verify -f plugin
+after_script: mvn clean package -f examples
+after_success:
+- VERSION=`python -c "import xml.etree.ElementTree as ET;  print(ET.parse(open('plugin/pom.xml')).getroot().find('{http://maven.apache.org/POM/4.0.0}version').text)"`
+- echo "Found version $VERSION"
+- if [[ $VERSION == *-SNAPSHOT ]]; then echo "Deploying to OSSRH Snapshots..."; mvn
+  clean deploy -f plugin -DaltDeploymentRepository=ossrh::default::https://oss.sonatype.org/content/repositories/snapshots
+  -DskipTests -B --settings .travis-deploy-settings.xml; else echo "Release version,
+  deploy is manual."; fi
+env:
+  global:
+  - secure: eh5IBjSb7kZg7ZVd6G6TrIZwgCRFozFQ53WAtIuUZfUMhtqxseJzsmETt8U7OlI29Z4IpU6Q1PCRP0+qJWJatdPKpNYR/RHgr5IChkCP8Gpn+EVoFmQDEPkivjTB/xqNDhp1sPA9R7C1uxFMnxq3a33jWXfj5VnZmdgd39LPSS+DgNoXiLy9vY69zYNse/7m/ZAh3c+rdTQrorO+bcfSYhGWFTl59EYHflKZcW+ABTlVttZ3iKLVsYNTfecYLHdyps9YSnTN/ctq0sFYZrH8X5xP1Dv515uRfqQbhVcy6e+d3KI7N1ixiw5JG7ZUCAjKP3bp18MbbKrxJwsNcFMbOu9PL43tp3vp/tiTlFTmB1L57LWQvbvcnGQP5wTLnGN8L4cBQwsxdp75xrqHdW35Mz7I3XuIO+YZzzSRlbbnYjxqDiaRJ39P1CVdK0/aJBb2il4ZHvz66epoewvBVo84VRkzEyG+n0VAGmFo9Whq+oRglDoP8AXDel7XyitOQtmFmeyHN8/6jsg9qKydorVzj1uMeDlsKPvEhXOfY46TITExsaoYXZvUFQJj5DMbgt/28XOc0tN/YrScUjA4DwWANxd9+NaPLytf8cm+JIxpQTbQiTi1PVf3SG0rlNhMRM+wfDaYy3xqm7vFOdPYfxPai8RhtURaC/bXn8esxJLqTuI=
+  - secure: vDn80mxdLkCkbgLLofFMNeP6EToQw0ORp/TzX6SfiuwP5MdypMIqnrXEC7GsmQxbdWAGwgIinBHIZrTpC8YiS9+LDQMn9FrSqql5gUuTbzc0z7iMw05pNbMKY8iKMI22hiT3p3G6EhS4c1eaNGaf+yQRLjUZxCJuxEyQNNVP6d5+yNXi0DupSOEs/7Sbcf9LPQWe3TkyI04dYqcBfc28CsNa6Zx9D1bj+xfB9b2D/EwT+boXGMeZNFagbWttVVnCuTbwR0hotzw+GRNMee2tp2g9POp0Gj6QrMf4cFclvP894G4ytmuxJItx2z8SyPLOW2qvMXvaNA2SP6670tK/VCUXC5MwkwxDs6UQxVsbKF2noO0jjEM3WX7Vmg45tvX/5SARd8w76YNtpEfRO1nHsP1v0ZdlcUww96x0goG5T3/hzohmMRI/PHP75Wv5ZBpOnuIgMViwvFYT51KUYUq9KuMExfW9g760PG/A1A9zF/vj336L5SnXwlRO3dWvEfWvQemDRmFJTe4Q1ojdY+iY/TsxiPw+uCXHI3iXHgJKJrZqjuHXN2NNESmalcLT26h4/bi4glbEBwxFQx4eNEwVtYYzxceaOYEZYJlKsbxwMpJPIpY3C56ugstGS6cE6OcZiyHOxYLtS4GusQp+7/ZjPajACZ2DJPO952Jyifa4U5w=
