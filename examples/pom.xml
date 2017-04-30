@@ -35,7 +35,7 @@
 	</licenses>
 
 	<scm>
-		<url>https://github.com/primeval/bnd-dsap-plugin</url>
+		<url>https://github.com/primeval-io/bnd-dsap-plugin</url>
 	</scm>
 
 	<properties>
