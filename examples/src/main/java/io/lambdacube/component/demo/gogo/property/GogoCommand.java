@@ -3,9 +3,9 @@ package io.lambdacube.component.demo.gogo.property;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
-import io.lambdacube.component.annotation.ComponentProperty;
-import io.lambdacube.component.annotation.ComponentPropertyGroup;
-import io.lambdacube.component.annotation.EnsureProvideService;
+import io.primeval.component.annotation.properties.ComponentProperty;
+import io.primeval.component.annotation.properties.ComponentPropertyGroup;
+import io.primeval.component.annotation.properties.EnsureProvideService;
 
 @EnsureProvideService
 @ComponentPropertyGroup

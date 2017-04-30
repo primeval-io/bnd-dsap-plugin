@@ -1,4 +1,4 @@
-package io.lambdacube.bnd.component.annotation.properties;
+package io.primeval.tooling.bnd.dsap;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -19,9 +19,9 @@ import aQute.bnd.osgi.Constants;
 import aQute.bnd.osgi.Resource;
 import aQute.bnd.service.AnalyzerPlugin;
 import aQute.lib.tag.Tag;
-import io.lambdacube.component.annotation.ComponentProperty;
-import io.lambdacube.component.annotation.ComponentPropertyGroup;
-import io.lambdacube.component.annotation.EnsureProvideService;
+import io.primeval.component.annotation.properties.ComponentProperty;
+import io.primeval.component.annotation.properties.ComponentPropertyGroup;
+import io.primeval.component.annotation.properties.EnsureProvideService;
 
 public final class DSAPPlugin implements AnalyzerPlugin {
 

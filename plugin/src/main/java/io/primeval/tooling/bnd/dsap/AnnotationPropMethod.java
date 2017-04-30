@@ -1,4 +1,4 @@
-package io.lambdacube.bnd.component.annotation.properties;
+package io.primeval.tooling.bnd.dsap;
 
 public final class AnnotationPropMethod {
     public final String propName;

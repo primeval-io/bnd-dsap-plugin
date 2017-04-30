@@ -2,7 +2,7 @@ package io.lambdacube.component.demo.basic;
 
 import org.osgi.service.component.annotations.Component;
 
-import io.lambdacube.component.annotation.common.ServiceRanking;
+import io.primeval.component.annotation.properties.common.ServiceRanking;
 
 @Secure(true)
 @Public

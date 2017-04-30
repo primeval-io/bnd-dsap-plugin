@@ -2,18 +2,20 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>io.lambdacube.bnd</groupId>
+	<!-- This project does not inherit from primeval-parent to demonstrate usage -->
+
+
+	<groupId>io.primeval.tooling.bnd</groupId>
 	<artifactId>bnd-dsap-examples</artifactId>
-	<version>1.0</version>
-	<packaging>bundle</packaging>
+	<version>2.0.0-SNAPSHOT</version>
 
 	<name>Bnd Declarative Services Annotation Properties Plugin Examples</name>
 	<description>Examples for the Bnd Declarative Services Annotation Properties Plugin</description>
-	<url>http://lambdacube.github.io/bnd-dsap-plugin</url>
+	<url>http://primeval.io/tooling/bnd-dsap-plugin</url>
 
 	<organization>
-		<name>Lambdacube</name>
-		<url>http://www.lambdacube.io</url>
+		<name>Primeval</name>
+		<url>http://primeval.io</url>
 	</organization>
 
 	<developers>
@@ -33,13 +35,16 @@
 	</licenses>
 
 	<scm>
-		<url>https://github.com/Lambdacube/bnd-dsap-plugin</url>
+		<url>https://github.com/primeval/bnd-dsap-plugin</url>
 	</scm>
 
 	<properties>
+		<bnd.version>3.3.0</bnd.version>
 		<java.version>1.8</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
+
 
 	<dependencies>
 		<!-- OSGi -->
@@ -58,13 +63,13 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>18.0</version>
+			<version>21.0</version>
 		</dependency>
 
 		<dependency>
-			<groupId>io.lambdacube.component.annotation</groupId>
+			<groupId>io.primeval.component.annotation</groupId>
 			<artifactId>component-annotation-properties</artifactId>
-			<version>1.0</version>
+			<version>2.0.0-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -80,34 +85,47 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.3</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 				</configuration>
 			</plugin>
-
 			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<version>3.0.0</version>
-				<extensions>true</extensions>
+				<groupId>biz.aQute.bnd</groupId>
+				<artifactId>bnd-maven-plugin</artifactId>
+				<version>${bnd.version}</version>
 				<configuration>
-					<instructions>
-						<_plugin>
-							io.lambdacube.bnd.component.annotation.properties.DSAPPlugin
-						</_plugin>
-						<_include>-src/main/osgi/osgi.bnd</_include>
-					</instructions>
+					<bnd><![CDATA[
+-plugin: io.primeval.tooling.bnd.dsap.DSAPPlugin
+]]></bnd>
 				</configuration>
 				<dependencies>
 					<dependency>
-						<groupId>io.lambdacube.bnd</groupId>
+						<groupId>io.primeval.tooling.bnd</groupId>
 						<artifactId>bnd-dsap-plugin</artifactId>
-						<version>1.0</version>
+						<version>2.0.0-SNAPSHOT</version>
 					</dependency>
 				</dependencies>
+				<executions>
+					<execution>
+						<goals>
+							<goal>bnd-process</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+					</archive>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
+
 </project>
