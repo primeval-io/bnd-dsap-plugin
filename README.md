@@ -1,7 +1,35 @@
-# Bnd Declarative Services Annotation Properties Plugin [![Build Status](https://travis-ci.org/primeval-io/bnd-dsap-plugin.svg?branch=master)](https://travis-ci.org/primeval-io/bnd-dsap-plugin)
-This plugin allows the definition of DS component properties using annotations
+# Bnd Declarative Services Annotation Properties Plugin [![Build Status](https://travis-ci.org/primeval-io/bnd-dsap-plugin.svg?branch=master)](https://travis-ci.org/primeval-io/bnd-dsap-plugin) [![Gitter primeval-io/Lobby](https://badges.gitter.im/primeval-io/Lobby.svg)](https://gitter.im/primeval-io/Lobby)
 
-# Now available on Maven Central!
+This BND plugin allows the definition of Declarative Services component properties using Java annotations.
+
+Tested with bnd 3.3.0.
+
+# Maven coordinates
+
+```xml
+
+	<groupId>io.primeval.tooling.bnd</groupId>
+	<artifactId>bnd-dsap-plugin</artifactId>
+	<version>2.0.0</version>
+```
+
+# Dependencies
+
+The `@ComponentProperty` and `@ComponentProperty` annotations reside in a separate JAR:
+
+```xml
+
+	<dependency>
+		<groupId>io.primeval.component.annotation</groupId>
+		<artifactId>component-annotation-properties</artifactId>
+		<version>2.0.0</version>
+	</dependency>
+```
+
+See [primeval-io/component-annotation-properties](http://github.com/primeval-io/component-annotation-properties).
+
+
+# Overview
 
 
 Instead of a clumsy and error-prone property definition such as this:
@@ -77,9 +105,7 @@ In this case, both properties are added.
 
 # Caveats
 
-I am using Maven and maven-bundle-plugin because I am comfortable with it. Because there still isn't a release using bndlib 3.1.0, it is using 3.0.0. It's only a matter of changing the property `${bnd.version}` in the root POM to change bndlib's version, but the build will have to be adapted further until m-b-p's 3.1.0 release. 
-
-Also, Bnd does not support extending DS component descriptors properly. This is only a dirty hack, and it's not pretty. It doesn't matter because this is build-time code and it works fine, but it would be much cleaner if Bnd had first-class support for extensions in its DS component generator mechanism.
+Bnd does not support extending DS component descriptors properly. This is only a dirty hack, and it's not pretty. It doesn't matter because this is build-time code and it works fine, but it would be much cleaner if Bnd had first-class support for extensions in its DS component generator mechanism.
 
 Finally, defining the same property multiple times either through annotations or using the official `@Component(property={...})` syntax will result in the property being present several time in the XML and is likely to cause runtime problems :-).
 
@@ -88,13 +114,40 @@ tl;dr: it works fine, and hopefully some day it can be rewritten in a cleaner wa
 
 # Enabling the plugin
 
+You can have a look at the `examples/` build.
 
 With Bnd:
 (The plugin has to be on the classpath).
 
 ```
--plugin: io.lambdacube.bnd.component.annotation.properties.DSAPPlugin
+-plugin: io.primeval.tooling.bnd.dsap.DSAPPlugin
 ```
+
+With bnd-maven-plugin:
+
+```xml
+	<plugin>
+		<groupId>biz.aQute.bnd</groupId>
+		<artifactId>bnd-maven-plugin</artifactId>
+		<version>${bnd.version}</version>
+		<configuration>
+			<bnd><![CDATA[-plugin: io.primeval.tooling.bnd.dsap.DSAPPlugin]]></bnd>
+		</configuration>
+		<dependencies>
+			<dependency>
+				<groupId>io.primeval.tooling.bnd</groupId>
+				<artifactId>bnd-dsap-plugin</artifactId>
+				<version>2.0.0</version>
+			</dependency>
+		</dependencies>
+		<executions>
+			<execution>
+				<goals>
+					<goal>bnd-process</goal>
+				</goals>
+			</execution>
+		</executions>
+	</plugin>
 
 With maven-bundle-plugin:
 ```xml
@@ -106,19 +159,20 @@ With maven-bundle-plugin:
         <configuration>
           <instructions>
             <_plugin>
-              io.lambdacube.bnd.component.annotation.properties.DSAPPlugin
+              io.primeval.tooling.bnd.dsap.DSAPPlugin
             </_plugin>
           </instructions>
         </configuration>
         <dependencies>
           <dependency>
-            <groupId>io.lambdacube.bnd</groupId>
+            <groupId>io.primeval.tooling.bnd</groupId>
             <artifactId>bnd-dsap-plugin</artifactId>
-            <version>1.0</version>
+            <version>2.0.0</version>
           </dependency>
         </dependencies>
       </plugin>
 ```
+
 
 # Usage for `@ComponentProperty` on the annotation type
 
@@ -217,49 +271,19 @@ sayGoodbye</property>
 You can find the code in the `examples` sub-module.
 
 
-# What's next
 
-I am interested in using annotations on @Reference methods.
+# Getting help
 
-```java
-@Component
-public final class IAmGogo {
+Post a new GitHub issue or join on [Gitter](https://gitter.im/primeval-io/Lobby).
+ 
 
-    @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-    public void addCommand(@CommandScope("*") Object command) {
+# Author
 
-    }
-
-    public void removeCommand(@CommandScope("*") Object command) {
-
-    }
-}
-```
-
-that would be equivalent to:
-
-```java
-@Component
-public final class IAmGogo {
-
-    @Reference(target = "(osgi.command.scope=*)", cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-    public void addCommand(Object command) {
-
-    }
-
-    public void removeCommand(Object command) {
-
-    }
-}
+bnd-dsap-plugin was developed by Simon Chemouil.
 
 
-```
+# Copyright
 
+(c) 2016-2017, Simon Chemouil, Lambdacube
 
-# License
-
-Apache Software License, version 2.0
-
-(c) Simon Chemouil, Lambdacube
-
-
+bnd-dsap-plugin is part of the Primeval project.
