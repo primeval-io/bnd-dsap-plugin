@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,6 +27,8 @@ import io.primeval.component.annotation.properties.ComponentPropertyGroup;
 import io.primeval.component.annotation.properties.EnsureProvideService;
 
 public final class DSAPPlugin implements AnalyzerPlugin {
+
+	private static final Pattern propertyPattern = Pattern.compile("\\$\\{([a-zA-Z.-]+)\\}");
 
     @Override
     public boolean analyzeJar(Analyzer analyzer) throws Exception {
@@ -53,7 +58,6 @@ public final class DSAPPlugin implements AnalyzerPlugin {
                 analyzer.warning("Couldn't find class %s, skipping", className);
                 continue;
             }
-
             boolean[] ensureService = new boolean[1];
             clazz.parseClassFileWithCollector(new ClassDataCollector() {
 
@@ -70,6 +74,7 @@ public final class DSAPPlugin implements AnalyzerPlugin {
 
                     annClazz.parseClassFileWithCollector(new ClassDataCollector() {
 
+                    	
                         @Override
                         public void method(MethodDef defined) {
                             lastMethod[0] = defined;
@@ -110,6 +115,24 @@ public final class DSAPPlugin implements AnalyzerPlugin {
                         // Read twice to be sure we only deal with the
                         // annotations we're interested in
                         annClazz.parseClassFileWithCollector(new ClassDataCollector() {
+                        	@Override
+                        	public void annotationDefault(MethodDef last)
+                        	{
+                        		if(props.size() < 1)
+                        		{
+                        			return;
+                        		}
+
+                        		AnnotationPropMethod apm = props.get(props.size()-1);
+                        		Object value = last.getConstant();
+
+                        		if(value instanceof String)
+                        		{
+                        			value = replaceProperties((String) value, analyzer.getProperties());
+                        		}
+
+								apm.setDefaultValue(value);
+                        	}
 
                             public void method(MethodDef last) {
                                 String prop = null;
@@ -184,13 +207,16 @@ public final class DSAPPlugin implements AnalyzerPlugin {
                                 value = annotation.get(apm.annotationMethodName);
                             }
                             if (value == null) {
-                                if (apm.isArray) {
+                                if (apm.defaultValue == null && apm.isArray) {
                                     value = new Object[0];
                                 } else {
-                                    analyzer.error("Default values are supported only for arrays (default to empty), fix annotation %s",
-                                            annClazz.getFQN());
-                                    return;
+                                	value = apm.defaultValue;
                                 }
+//                                else {
+//                                    analyzer.error("Default values are supported only for arrays (default to empty), fix annotation %s",
+//                                            annClazz.getFQN());
+//                                    return;
+//                                }
                             }
 
                             String outValue = null;
@@ -244,4 +270,29 @@ public final class DSAPPlugin implements AnalyzerPlugin {
         return false;
     }
 
+	/**
+	 * @param value
+	 * @param analyzer
+	 * @return
+	 */
+	private String replaceProperties(String value, Properties props)
+	{
+		Matcher matcher = propertyPattern.matcher(value);
+		StringBuffer sb = new StringBuffer();
+
+		while(matcher.find())
+		{
+			String found = matcher.group(1);
+			String property = props.getProperty(found);
+
+			if(property == null)
+			{
+				property = "\\$\\{" + found + "\\}";
+			}
+
+			matcher.appendReplacement(sb, property);
+		}
+		matcher.appendTail(sb);
+		return sb.toString();
+	}
 }

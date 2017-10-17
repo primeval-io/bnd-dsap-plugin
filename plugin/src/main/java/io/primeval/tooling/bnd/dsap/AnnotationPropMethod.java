@@ -5,6 +5,7 @@ public final class AnnotationPropMethod {
     public final String typeName;
     public final boolean isArray;
     public final String annotationMethodName;
+	public Object defaultValue;
 
     public AnnotationPropMethod(String propName, String typeName, boolean isArray, String annotationMethodName) {
         super();
@@ -14,4 +15,8 @@ public final class AnnotationPropMethod {
         this.annotationMethodName = annotationMethodName;
     }
 
+    public void setDefaultValue(Object defaultValue)
+	{
+        this.defaultValue = defaultValue;
+	}
 }
